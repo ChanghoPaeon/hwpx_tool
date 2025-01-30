@@ -81,7 +81,7 @@ class HwpKeywordSearcher:
 
         """폴더 내 모든 HWP 파일을 검색하고 결과를 CSV로 저장"""
 
-        print("start at: " + self.working_path)
+        print("\nstart at: " + self.working_path)
 
         files = [f for f in os.listdir(self.folder_path+"\\"+self.working_path) if f.endswith('.hwp')]
         total_files = len(files)
@@ -108,7 +108,7 @@ class HwpKeywordSearcher:
 
         self.save_to_csv(results)
 
-    def traverse_search(self):
+    def traverse_work(self):
         """지정된 폴더 내의 모든 폴더 및 파일을 순회"""
         for root, dirs, files in os.walk(self.folder_path):
             # root: 현재 디렉토리 경로
