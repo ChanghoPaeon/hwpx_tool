@@ -5,8 +5,8 @@ from tkinter.filedialog import askopenfilename
 
 import win32com.client as win32
 
-hwp = win32.gencache.EnsureDispatch("hwpframe.hwpobject")  # 한/글 실행
-hwp.RegisterModule("FilePathCheckDLL", "FilePathCheckerModule")  # 보안팝업 자동클릭
+# hwp = win32.gencache.EnsureDispatch("hwpframe.hwpobject")  # 한/글 실행
+# hwp.RegisterModule("FilePathCheckDLL", "FilePathCheckerModule")  # 보안팝업 자동클릭
 
 # hwp.XHwpWindows.Item(0).Visible = True  # 백그라운드 작업
 # FILE_PATH = r"C:\Users\smj02\OneDrive\바탕 화면\빈 문서1.hwp"
