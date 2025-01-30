@@ -1,6 +1,12 @@
 import os
 import hashlib
+import sys
 
+# ✅ 실행 예제: 원드라이브 문서 폴더 내 중복 파일 삭제
+# onedrive_path = os.path.expanduser("~/OneDrive")  # 기본 원드라이브 경로
+# target_folder = os.path.join(onedrive_path, "문서")  # 검사할 폴더
+#
+# find_and_delete_duplicates(target_folder)
 
 def get_file_hash(file_path):
     """파일의 SHA-256 해시 값을 계산합니다."""
@@ -28,8 +34,12 @@ def find_and_delete_duplicates(directory):
     file_hashes = {}  # {해시값: 파일경로 리스트}
 
     for root, _, files in os.walk(directory):
-        for file in files:
+
+        total_files = len(files)
+
+        for i, file in enumerate(files, start=1):
             file_path = os.path.join(root, file)
+            # print("before call hash: " + file_path)
             file_hash = get_file_hash(file_path)
 
             if file_hash:
@@ -37,6 +47,10 @@ def find_and_delete_duplicates(directory):
                     file_hashes[file_hash].append(file_path)
                 else:
                     file_hashes[file_hash] = [file_path]
+
+            sys.stdout.write(f"\r🔄 hash 진행 중: {i}/{total_files} ({(i / total_files) * 100:.2f}%)")
+            sys.stdout.flush()
+        print(" ... end!")
 
     # 중복된 파일 삭제 (하나만 남기고 나머지 삭제)
     for hash_value, file_list in file_hashes.items():
@@ -48,17 +62,80 @@ def find_and_delete_duplicates(directory):
             # 첫 번째 파일을 남기고 나머지는 삭제
             for duplicate in file_list[1:]:
                 try:
-                    os.remove(duplicate)
+                    # os.remove(duplicate)
                     print(f"🗑️ 삭제 완료: {duplicate}")
                 except Exception as e:
                     print(f"❌ 삭제 실패: {duplicate}, 오류: {e}")
+
+        # sys.stdout.write(f"\r🔄 hash 진행 중: {i}/{total_files} ({(i / total_files) * 100:.2f}%)")
+        # sys.stdout.flush()
 
     print("\n✅ 중복 파일 정리 완료!")
     return True
 
 
-# ✅ 실행 예제: 원드라이브 문서 폴더 내 중복 파일 삭제
-onedrive_path = os.path.expanduser("~/OneDrive")  # 기본 원드라이브 경로
-target_folder = os.path.join(onedrive_path, "문서")  # 검사할 폴더
+import os
 
-find_and_delete_duplicates(target_folder)
+
+def traverse_directory(path):
+    """지정된 폴더 내의 모든 폴더 및 파일을 순회"""
+    for root, dirs, files in os.walk(path):
+        # root: 현재 디렉토리 경로
+        # dirs: 현재 디렉토리 내의 하위 폴더 리스트
+        # files: 현재 디렉토리 내의 파일 리스트
+
+        print(f"현재 폴더: {root}")
+
+        if dirs:
+            print("하위 폴더들:")
+            for dir_name in dirs:
+                print(f"  {dir_name}")
+
+        if files:
+            print("파일들:")
+            for file_name in files:
+                print(f"  {file_name}")
+
+        print("=" * 50)
+
+
+# 예시 실행
+# folder_path = "I:\test\NGD"  # 검색할 폴더 경로
+# traverse_directory(folder_path)
+
+import zipfile
+# import os
+
+
+# 예시 실행
+# zip_file_path = "example.zip"  # ZIP 파일 경로
+# output_folder = "extracted_files"  # 압축 풀 폴더
+# extension = ".txt"  # 추출할 확장자 (예: .txt)
+
+# 폴더가 없다면 생성
+# if not os.path.exists(output_folder):
+#     os.makedirs(output_folder)
+#
+# # 특정 확장자 파일만 추출
+# extract_files_with_extension(zip_file_path, output_folder, extension)
+
+
+def extract_files_with_extension(zip_path, extract_to_folder, ext):
+    """
+    ZIP 파일에서 특정 확장자를 가진 파일만 추출하는 함수
+    :param zip_path: ZIP 파일 경로
+    :param extract_to_folder: 압축을 풀 폴더 경로
+    :param ext: 추출할 파일의 확장자 (예: '.txt', '.jpg')
+    """
+    # ZIP 파일 열기
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        # ZIP 파일 내의 모든 파일 목록 가져오기
+        all_files = zip_ref.namelist()
+
+        # 특정 확장자 파일만 필터링
+        files_to_extract = [f for f in all_files if f.endswith(ext)]
+
+        # 선택된 파일들만 추출
+        for file in files_to_extract:
+            zip_ref.extract(file, extract_to_folder)
+            print(f"추출된 파일: {file}")
