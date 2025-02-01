@@ -4,6 +4,11 @@ import csv
 
 import tools
 
+import datetime
+
+from tools import benchmark
+
+
 # ✅ 실행 예제
 # folder_path = "I:\\test\\[NGD]179차 기출 최종완성본 (총 376파일)_2023.07.26 한글본\\"
 # keywords = ["[난이도] 특", "[난이도] 상", "[난이도] 중", "[난이도] 하", "검색어5"]
@@ -30,6 +35,7 @@ class HwpKeywordSearcher:
 
         self.hwp = hwp
 
+    @benchmark
     def count_keywords_in_file(self, file_path):
         """
         HWP 파일에서 키워드 등장 횟수를 계산
@@ -69,7 +75,9 @@ class HwpKeywordSearcher:
         결과를 CSV 파일로 저장
         :param results: 검색된 결과 리스트
         """
-        output_csv_name = "total.csv"
+
+        suffix = datetime.datetime.now().strftime('%y%m%d_%H%M%S')
+        output_csv_name = suffix + "total.csv"
         result_csv_full = self.output_csv_path + "\\" + output_csv_name
         with open(result_csv_full, 'a+', newline='', encoding='utf-8-sig') as f:
             writer = csv.writer(f)
