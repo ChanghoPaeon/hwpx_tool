@@ -1,6 +1,51 @@
 import os
 import hashlib
 import sys
+import time
+
+
+# 예시로 사용할 함수
+# @benchmark
+# def sample_function():
+#     # 테스트용 함수 (예: 1부터 1000000까지 합산)
+#     total = 0
+#     for i in range(1, 1000001):
+#         total += i
+#     return total
+#
+#
+# # 함수 호출 (실제 벤치마크가 실행됨)
+# sample_function()
+
+
+
+
+
+def benchmark(func):
+    """
+    주어진 함수의 실행 시간을 측정하고, 콘솔 및 파일에 로그를 남깁니다.
+    """
+
+    def wrapper(*args, **kwargs):
+        start_time = time.time()  # 함수 실행 전 시간 기록
+        result = func(*args, **kwargs)
+        end_time = time.time()  # 함수 실행 후 시간 기록
+        execution_time = end_time - start_time  # 실행 시간 계산
+
+        # 콘솔에 로그 출력
+        print(f"[BENCHMARK] {func.__name__} 실행 시간: {execution_time:.6f} 초")
+
+        # 파일에 로그 기록
+        # with open("benchmark_log.txt", "a") as log_file:
+        #     log_file.write(f"[BENCHMARK] {func.__name__} 실행 시간: {execution_time:.6f} 초\n")
+
+        return result
+
+    return wrapper
+
+
+
+
 
 # ✅ 실행 예제: 원드라이브 문서 폴더 내 중복 파일 삭제
 # onedrive_path = os.path.expanduser("~/OneDrive")  # 기본 원드라이브 경로
@@ -8,6 +53,7 @@ import sys
 #
 # find_and_delete_duplicates(target_folder)
 
+@benchmark
 def get_file_hash(file_path):
     """파일의 SHA-256 해시 값을 계산합니다."""
     hasher = hashlib.sha256()
@@ -139,3 +185,6 @@ def extract_files_with_extension(zip_path, extract_to_folder, ext):
         for file in files_to_extract:
             zip_ref.extract(file, extract_to_folder)
             print(f"추출된 파일: {file}")
+
+PATH="E:\\download"
+find_and_delete_duplicates(PATH)
