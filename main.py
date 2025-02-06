@@ -33,17 +33,22 @@ import win32com.client as win32
 
 
 if __name__ == '__main__':
-    keywords = ["[난이도] 특", "[난이도] 상", "[난이도] 중", "[난이도] 하", "검색어5"]  # 찾고 싶은 단어 목록
-    output_csv_path = "I:\\test_1\\"  # 결과 CSV 파일명
+    keywords = ["[난이도] 특", "[난이도] 상", "[난이도] 중", "[난이도] 하"]  # 찾고 싶은 단어 목록
+    output_csv_path = "C:\\Data\\workplace\\NGD"  # 결과 CSV 파일명
 
-    folder_path = "I:\\test_1"  # 검색할 폴더 경로
+    folder_path = "C:\\Data\\workplace\\NGD"  # 검색할 폴더 경로
+
+    import datetime
+
+    suffix = datetime.datetime.now().strftime('%y%m%d_%H%M%S')
+
 
     # 난이도 search
-    searcher = statistics.HwpKeywordSearcher(hwp, folder_path, keywords, output_csv_path)
+    searcher = statistics.HwpKeywordSearcher(hwp, folder_path, keywords, output_csv_path, suffix)
     searcher.traverse_work()
 
 
-    converter = hwp_format_converter.NGD_converter(hwp, folder_path, keywords, output_csv_path)
-    converter.traverse_work()
+    # converter = hwp_format_converter.NGD_converter(hwp, folder_path, keywords, output_csv_path)
+    # converter.traverse_work()
 
     # tools.find_and_delete_duplicates(folder_path)
