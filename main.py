@@ -48,7 +48,7 @@ if __name__ == '__main__':
     searcher.traverse_work()
 
 
-    # converter = hwp_format_converter.NGD_converter(hwp, folder_path, keywords, output_csv_path)
+    # converter = hwp_format_converter.NGD_converter(hwp, folder_path, keywords, output_csv_path, suffix)
     # converter.traverse_work()
 
     # tools.find_and_delete_duplicates(folder_path)

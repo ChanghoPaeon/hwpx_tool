@@ -7,13 +7,14 @@ from hpw_tool import delete_NGD_by_api
 
 
 class NGD_converter:
-    def __init__(self, hwp, folder_path, keywords, output_path):
+    def __init__(self, hwp, folder_path, keywords, output_path, work_start_time):
         """
         HWP 파일에서 특정 키워드를 검색하는 클래스
         :param folder_path: 검색할 폴더 경로
         :param keywords: 찾을 키워드 목록 (리스트)
         :param output_csv: 결과를 저장할 CSV 파일 경로
         """
+        self.output_csv_name = work_start_time + "_total.csv"
         self.folder_path = folder_path
         self.output_path = output_path
         self.working_path = folder_path
@@ -97,7 +98,7 @@ class NGD_converter:
         :param results: 검색된 결과 리스트
         """
         output_csv_name = "total.csv"
-        result_csv_full = self.output_path + "\\" + output_csv_name
+        result_csv_full = self.output_path + "\\" + self.output_csv_name
         with open(result_csv_full, 'a+', newline='', encoding='utf-8-sig') as f:
             writer = csv.writer(f)
             writer.writerow(["중고", "연도", "학기", "지역", "학교명", "과목", "범위"] + self.keywords)
