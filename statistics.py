@@ -2,6 +2,7 @@ import os
 import sys
 import csv
 
+import logger
 import tools
 
 import datetime
@@ -50,7 +51,8 @@ class HwpKeywordSearcher:
         try:
 
             self.work_cnt = self.work_cnt + 1
-            print(str(self.work_cnt) + " 번째 파일: " + file_path)
+            logger.logger.debug(str(self.work_cnt) + " 번째 파일: " + file_path)
+            # print(str(self.work_cnt) + " 번째 파일: " + file_path)
             # return dict({"[난이도] 특":1, "[난이도] 상":1, "[난이도] 중":1, "[난이도] 하":1 })
             doc = self.hwp.open(file_path)
             content = self.hwp.GetTextFile()
@@ -156,8 +158,9 @@ class HwpKeywordSearcher:
                     self.search(self.working_path)
 
             if files:
-                print("파일들:")
+                # print("파일들:")
                 for file_name in files:
-                    print(f"  {file_name}")
+                    # print(f"  {file_name}")
+                    logger.logger.info(f"  {file_name}")
 
             print("=" * 50)
