@@ -13,6 +13,8 @@ import hwp_format_converter
 # hpw_tool.delete_NGD_by_api(path)
 # hpw_tool.hwp.Quit()  # 한/글 종료
 
+
+
 import pyhwpx
 hwp = pyhwpx.Hwp()
 
@@ -34,10 +36,12 @@ import win32com.client as win32
 #
 # search_keywords_in_folder(folder_path, keywords, output_csv)
 
-
+hwp.XHwpWindows.Active_XHwpWindow.Visible = False
 
 if __name__ == '__main__':
-    keywords = ["[난이도] 킬","[난이도] 특", "[난이도] 상", "[난이도] 중", "[난이도] 하"]  # 찾고 싶은 단어 목록
+    keywords = ["[난이도] 킬러","[난이도] 킬","[난이도] 특", "[난이도] 상"]  # 찾고 싶은 단어 목록
+    # keywords = ["[난이도] 킬러", "[난이도] 킬", "[난이도] 특", "[난이도] 상", "[난이도] 중", "[난이도] 하"]  # 찾고 싶은 단어 목록
+
     output_csv_path = config.get("path", "output_csv_path")  # 결과 CSV 파일명
 
     folder_path = config.get("path", "folder_path")# 검색할 폴더 경로
@@ -50,7 +54,7 @@ if __name__ == '__main__':
     # 난이도 search
     searcher = statistics.HwpKeywordSearcher(hwp, folder_path, keywords, output_csv_path, suffix)
     searcher.traverse_work()
-
+    hwp.XHwpWindows.Active_XHwpWindow.Visible = True
 
     # converter = hwp_format_converter.NGD_converter(hwp, folder_path, keywords, output_csv_path, suffix)
     # converter.traverse_work()

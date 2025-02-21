@@ -58,6 +58,18 @@ class HwpKeywordSearcher:
             content = self.hwp.GetTextFile()
             result = {keyword: content.count(keyword) for keyword in self.keywords}
 
+            # self.MoveDocBegin()
+            # while self.find("co"):
+            #     self.insert_text("코")
+            #
+            # self.hwp.HAction.GetDefault("RepeatFind", self.hwp.HParameterSet.HFindReplace.HSet)
+            # self.hwp.HParameterSet.HFindReplace.FindString = 단어
+            # self.hwp.HParameterSet.HFindReplace.Direction = self.hwp.FindDir("Forward")
+            # self.hwp.HParameterSet.HFindReplace.IgnoreMessage = 1
+            # self.hwp.HParameterSet.HFindReplace.FindType = 1
+            # return self.hwp.HAction.Execute("RepeatFind", self.hwp.HParameterSet.HFindReplace.HSet)
+
+
 
             return result
         except Exception as e:
