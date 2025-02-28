@@ -6,7 +6,7 @@ hwp = pyhwpx.Hwp()
 hwp.RegisterModule("FilePathCheckDLL", "FilePathCheckerModule")
 
 
-def extract_from_ebs(file_path, out_path="I:\\workspace\\ebs\\"):
+def extract_from_ebs(file_path, out_path="I:\\workspace\\ebs\\new\\"):
 
     hwp.XHwpWindows.Active_XHwpWindow.Visible = False
 
@@ -119,6 +119,7 @@ def extract_from_ebs(file_path, out_path="I:\\workspace\\ebs\\"):
         hwp.set_pos(*pos_ans_end)
         hwp.Copy()
         hwp.switch_to(1)
+        hwp.Run("BreakColumn")
         # 미주 넣기
         hwp.Run("InsertEndnote")
         # hwp.MoveNextPosEx()
@@ -173,6 +174,6 @@ file_path = "F:\\git_repo\\hwpx_tool\\sample\\EBS 2026학년도 수능특강 수
 file_path = "F:\\git_repo\\hwpx_tool\\sample\\EBS 2026학년도 수능특강 수학영역 확률과 통계_(186).hwp"
 # file_path = "F:\\git_repo\\hwpx_tool\\sample\\EBS 2026학년도 수능특강 수학영역 미적분_(172).hwp"
 
-file_path = "I:\\학원-과외\\학원-부산\\문제집-일반\\EBS\\수능완성\\EBS 2025학년도 수능완성 수학영역 수학Ⅰㆍ수학Ⅱㆍ미적분.hwp"
+file_path = "I:\\학원-과외\\학원-부산\\문제집-일반\\EBS\\기출의 미래\\EBS 2023 수능 기출의 미래 미니모의고사 수학영역 수학Ⅰ·수학Ⅱ 고난도.hwp"
 
 extract_from_ebs(file_path)
