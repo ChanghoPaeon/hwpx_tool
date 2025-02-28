@@ -54,12 +54,13 @@ class NGD_converter:
 
 
             self.hwp.Delete()
-            # print("pdf: "+file_path)
+            print("pdf: "+file_path)
+            print("target path:" + os.path.join(self.output_path, os.path.split(file_path)[-1]+"_converted.pdf"))
             # result = self.hwp.save_as(file_path+"_converted.pdf.pdf", format="pdf")
 
             pset = self.hwp.HParameterSet.HFileOpenSave
             self.hwp.HAction.GetDefault("FileSaveAsPdf", self.hwp.HParameterSet.HFileOpenSave.HSet)
-            self.hwp.HParameterSet.HFileOpenSave.filename = file_path+"_converted.pdf"
+            self.hwp.HParameterSet.HFileOpenSave.filename = os.path.join(self.output_path, os.path.split(file_path)[-1]+"_converted.pdf")
             self.hwp.HParameterSet.HFileOpenSave.Format = "PDF"
             self.hwp.HParameterSet.HFileOpenSave.Attributes = 16384
             result = self.hwp.HAction.Execute("FileSaveAsPdf", self.hwp.HParameterSet.HFileOpenSave.HSet)
