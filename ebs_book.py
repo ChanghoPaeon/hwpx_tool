@@ -6,9 +6,9 @@ hwp = pyhwpx.Hwp()
 hwp.RegisterModule("FilePathCheckDLL", "FilePathCheckerModule")
 
 
-def extract_from_ebs(file_path, out_path="I:\\workspace\\ebs\\new\\"):
+def extract_from_ebs(file_path, out_path="I:\\workspace\\ebs\\"):
 
-    hwp.XHwpWindows.Active_XHwpWindow.Visible = False
+    # hwp.XHwpWindows.Active_XHwpWindow.Visible = False
 
     ret = True
 
@@ -53,7 +53,7 @@ def extract_from_ebs(file_path, out_path="I:\\workspace\\ebs\\new\\"):
     hwp.HAction.Execute("MultiColumn", pset.HSet)
     # act.Execute(pset)
 
-    hwp.XHwpWindows.Active_XHwpWindow.Visible = False
+    # hwp.XHwpWindows.Active_XHwpWindow.Visible = False
 
     hwp.switch_to(0)
     hwp.MoveDocBegin()
@@ -78,6 +78,7 @@ def extract_from_ebs(file_path, out_path="I:\\workspace\\ebs\\new\\"):
         print(ret)
         hwp.Cancel()
 
+        # 문제 찾아서 위치 저장
         ret = hwp.find("[문제]")
         print("문제")
         print(ret)
@@ -87,6 +88,7 @@ def extract_from_ebs(file_path, out_path="I:\\workspace\\ebs\\new\\"):
 
         pos_list_prob.append(pos_problem)
 
+        # 정답 및 해설 찾아서 위치 저장
         ret = hwp.find("[정답/모범답안]")
         # print(ret)
         pos_ans = hwp.get_pos()
@@ -112,25 +114,31 @@ def extract_from_ebs(file_path, out_path="I:\\workspace\\ebs\\new\\"):
         # move to ans
         # copy
 
-        # 정답 복사
+        # 정답 선택해서 후 복사붙여넣기
         hwp.set_pos(*pos_ans)
         hwp.Select()
 
         hwp.set_pos(*pos_ans_end)
         hwp.Copy()
+        
+        # 새 문서로 전환
         hwp.switch_to(1)
+
         hwp.Run("BreakColumn")
         # 미주 넣기
         hwp.Run("InsertEndnote")
         # hwp.MoveNextPosEx()
         hwp.Paste()
+
+        # 미주 빠져나오기
         hwp.MoveNextPosEx()
         hwp.MoveNextPosEx()
 
 
-
+        # 원본 문서 이동
         hwp.switch_to(0)
-
+        
+        # 문제  선택해서 후 복사붙여넣기
         hwp.set_pos(*pos_problem)
         hwp.Select()
         lst = list(pos_ans)
@@ -139,7 +147,8 @@ def extract_from_ebs(file_path, out_path="I:\\workspace\\ebs\\new\\"):
         hwp.set_pos(*pos_modification)
         hwp.Copy()
         hwp.switch_to(1)
-        hwp.insert_text(prob_num)
+        # hwp.insert_text(" ["+prob_num+"]")
+        hwp.insert_text(" "+prob_num)
         hwp.Paste()
         hwp.switch_to(0)
 
@@ -148,16 +157,26 @@ def extract_from_ebs(file_path, out_path="I:\\workspace\\ebs\\new\\"):
 
     hwp.switch_to(1)
 
+
+    # ctrl + enter
+    hwp.Run("BreakPage")
+
+    # 맨 앞으로 가서 del 두번
+    hwp.MoveDocBegin()
+    hwp.Delete()
+    hwp.Delete()
+
     # i = 0
     # while hwp.get_into_nth_table(i):
     #     hwp.set_table_width()
     #     i += 1
-    hwp.save_as(out_path+os.path.basename(file_path)+"-new.hwpx", "HWPX")
+    hwp.save_as(out_path+os.path.basename(file_path)+"-new-.hwpx", "HWPX")
 
     hwp.XHwpWindows.Active_XHwpWindow.Visible = True
     hwp.Close()
     hwp.switch_to(0)
     hwp.XHwpWindows.Active_XHwpWindow.Visible = True
+
     hwp.Close()
 
     print(pos_prob_num)
@@ -174,6 +193,6 @@ file_path = "F:\\git_repo\\hwpx_tool\\sample\\EBS 2026학년도 수능특강 수
 file_path = "F:\\git_repo\\hwpx_tool\\sample\\EBS 2026학년도 수능특강 수학영역 확률과 통계_(186).hwp"
 # file_path = "F:\\git_repo\\hwpx_tool\\sample\\EBS 2026학년도 수능특강 수학영역 미적분_(172).hwp"
 
-file_path = "I:\\학원-과외\\학원-부산\\문제집-일반\\EBS\\기출의 미래\\EBS 2023 수능 기출의 미래 미니모의고사 수학영역 수학Ⅰ·수학Ⅱ 고난도.hwp"
+file_path = "I:\\학원-과외\\학원-부산\\문제집-일반\\EBS\\기출의 미래\\EBS 2026학년도 수능 기출의 미래 수학Ⅱ_(314).hwp"
 
 extract_from_ebs(file_path)
