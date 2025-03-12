@@ -3,7 +3,8 @@ import hpw_tool
 import tools
 import hwp_format_converter
 
-
+import win32com
+print(win32com.__gen_path__)
 
 # hwp_tool 사용예제
 # path = hpw_tool.파일선택()
@@ -34,8 +35,7 @@ import win32com.client as win32
 #
 # search_keywords_in_folder(folder_path, keywords, output_csv)
 
-hwp.XHwpWindows.Active_XHwpWindow.Visible = False
-
+    # hwp.XHwpWindows.Active_XHwpWindow.Visible = False
 if __name__ == '__main__':
     keywords = ["[난이도] 킬러","[난이도] 킬","[난이도] 특", "[난이도] 상"]  # 찾고 싶은 단어 목록
     # keywords = ["[난이도] 킬러", "[난이도] 킬", "[난이도] 특", "[난이도] 상", "[난이도] 중", "[난이도] 하"]  # 찾고 싶은 단어 목록
@@ -50,11 +50,11 @@ if __name__ == '__main__':
 
 
     # 난이도 search
-    searcher = statistics.HwpKeywordSearcher(hwp, folder_path, keywords, output_csv_path, suffix)
-    searcher.traverse_work()
-    hwp.XHwpWindows.Active_XHwpWindow.Visible = True
+    # searcher = statistics.HwpKeywordSearcher(hwp, folder_path, keywords, output_csv_path, suffix)
+    # searcher.traverse_work()
+    # hwp.XHwpWindows.Active_XHwpWindow.Visible = True
 
-    # converter = hwp_format_converter.NGD_converter(hwp, folder_path, keywords, output_csv_path, suffix)
-    # converter.traverse_work()
+    converter = hwp_format_converter.NGD_converter(hwp, folder_path, keywords, output_csv_path, suffix)
+    converter.traverse_work()
 
     # tools.find_and_delete_duplicates(folder_path)
