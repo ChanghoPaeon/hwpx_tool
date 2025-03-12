@@ -8,6 +8,8 @@ import logger
 from tools import benchmark
 
 from hpw_tool import delete_NGD_by_api
+import re
+import pyperclip
 
 def createDirectory(directory):
     try:
@@ -22,6 +24,10 @@ def createDirectory(directory):
 # 07030
 pattern = r"To\s*\n\d{5}"
 
+
+# hwp.XHwpWindows.Active_XHwpWindow.Visible = False
+# 07030
+pattern = r"To\s*\n\d{5}"
 
 class NGD_converter:
     def __init__(self, hwp, folder_path, keywords, output_path, work_start_time):
@@ -238,6 +244,93 @@ class NGD_converter:
         self.hwp.SaveAs(os.path.join(self.output_path, os.path.split(file_path)[-1] + "_converted.hwpx"),
                         "HWPX")  # hwpx로 저장
 
+
+    def math_eq_refiner(self):
+
+        self.hwp.MoveDocBegin()
+        # 메시지 박스 자동
+        for ctrl in self.hwp.ctrl_list:
+            # print(ctrl)
+            # 미주 미주
+
+            # print(ctrl.UserDesc)
+            if ctrl.UserDesc == "수식":
+
+                ret = self.hwp.select_ctrl(ctrl)
+                self.hwp.move_to_ctrl(ctrl)
+                # hwp.MoveRight()
+                # hwp.BreakPara()
+                # hwp.set_font(TextColor="Red")
+                # hwp.insert_text(ctrl.Properties.Item("String"))
+                matheq = ctrl.Properties.Item("String")
+                matches = re.findall(pattern, matheq)
+                # print(matheq)
+
+                if matches:
+                    print("=================== 바꾸기 전")
+                    print(matheq)
+                    result = self.re.sub(pattern, "", matheq)
+                    print("=================== 바꾸고 난 후")
+                    result = self.re.sub(r"\s+$", " ", result)
+                    # # stripped = result.rstrip() + " " if result.strip() != result.rstrip() else result
+                    print(result)
+                    print("=================== ")
+
+                    ctrl.Properties.SetItem("String", result)
+                    ctrl.Properties.SetItem("VisualString", result)
+                    # hwp.HAction.GetDefault("EquationModify", hwp.HParameterSet.HEqEdit.HSet)
+                    # # hwp.HParameterSet.SetItem("String", result)
+                    # print(hwp.HParameterSet.HEqEdit.string)
+                    # print(hwp.HParameterSet.HEqEdit)
+                    # hwp.HParameterSet.HEqEdit.VisualString = result
+                    # print(hwp.HParameterSet.HEqEdit.VisualString)
+                    # print(hwp.HParameterSet.HEqEdit.Version)
+                    # hwp.HAction.Execute("EquationModify", hwp.HParameterSet.HEqEdit.HSet)
+                    # hwp.HAction.Run("SelectAll")
+                    # 수식 하나 바꾼 후 죽음 이게 원인인가
+                    # hwp.HAction.Run("Delete")
+                    # 바뀌긴 하나 파일 수식 열어서 편집창 등왔다리 갔다리 해야 변경 적용됨 이유는 뭘까?
+                    # pset = hwp.HParameterSet.HEqEdit
+                    # hwp.HAction.GetDefault("EquationModify", hwp.HParameterSet.HEqEdit.HSet)
+                    # hwp.HParameterSet.HEqEdit.string = result
+                    # hwp.HParameterSet.HEqEdit.VisualString = result
+                    # # hwp.HParameterSet.HEqEdit.Version = "Equation Version 60"
+                    # hwp.HAction.Execute("EquationModify", hwp.HParameterSet.HEqEdit.HSet)
+                    # hwp.Run("Cancel")  # 폰트 예뻐짐
+                    # hwp.Run("MoveRight")  # 다음 수식 삽입 준비
+                    # hwp.MoveRight()
+
+                    # https://employeecoding.tistory.com/335
+                    # act = hwp.CreateAction("EquationPropertyDialog")
+                    # pset = act.CreateSet()
+                    # act.GetDefault(pset)
+                    #
+                    # pset.SetItem("String", result)
+                    # act.Execute(pset)
+
+                    self.hwp.HAction.GetDefault("EquationCreate", self.hwp.HParameterSet.HEqEdit.HSet)
+                    self.hwp.HParameterSet.HEqEdit.EqFontName = "HancomEQN"
+                    self.hwp.HParameterSet.HEqEdit.EqFontName = "HYhwpEQ"
+                    self.hwp.HParameterSet.HEqEdit.string = result
+                    self.hwp.HParameterSet.HEqEdit.TreatAsChar = True
+                    self.hwp.HParameterSet.HEqEdit.BaseUnit = self.hwp.PointToHwpUnit(11.0)
+                    self.hwp.HParameterSet.HEqEdit.Version = "Equation Version 60"
+                    self.hwp.HAction.Execute("EquationCreate", self.hwp.HParameterSet.HEqEdit.HSet)
+
+                    self.hwp.HAction.Run("Delete")
+
+                    # hwp.HAction.GetDefault("EquationPropertyDialog", hwp.HParameterSet.HShapeObject.HSet)
+                    # hwp.HParameterSet.HShapeObject.string = result
+                    # hwp.HAction.Execute("EquationPropertyDialog", hwp.HParameterSet.HShapeObject.HSet)
+
+                    #
+                    self.hwp.MoveRight()
+                    # hwp.BreakPara()
+                    # hwp.set_font(TextColor="Red")
+                    # hwp.insert_text(ctrl.Properties.Item("String"))
+
+                # if matheq.find("N.G.D") !=-1 or matheq.find("NGD") != -1:
+                #     print(ctrl.Properties.Item("String"))
 
     def parse_filename(self, file_name):
         """
