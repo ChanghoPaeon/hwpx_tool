@@ -6,9 +6,11 @@ config = configparser.ConfigParser() # 유니코드 문자열로 처리
 with open('config.ini', 'r',encoding='utf-8') as f:
     config.read_file(f)
 
+import datetime
 
+suffix = datetime.datetime.now().strftime('%y%m%d_%H%M%S')
 
-logging.basicConfig(filename="./log_file.txt", level=logging.DEBUG,encoding='utf-8',
+logging.basicConfig(filename="./log_file" + suffix + ".txt", level=logging.DEBUG,encoding='utf-8',
                     format="[ %(asctime)s | %(levelname)s ] %(message)s",
                     datefmt="%Y-%m-%d %H:%M:%S")
 
