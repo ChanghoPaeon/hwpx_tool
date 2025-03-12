@@ -2,7 +2,8 @@ import os
 import hashlib
 import sys
 import time
-
+import shutil
+from pathlib import Path
 
 # 예시로 사용할 함수
 # @benchmark
@@ -237,3 +238,51 @@ def ex_work_test():
 # extract_hwp_from_zip(zip_file_path)
 
 # ex_work_test()
+
+def move_file(src_path, dest_dir):
+    """
+    파일을 지정된 디렉터리로 이동하는 함수
+
+    :param src_path: 이동할 파일의 경로 (예: "C:/Users/User/Documents/file.txt")
+    :param dest_dir: 이동할 대상 디렉터리 (예: "C:/Users/User/Desktop/")
+    :return: 이동된 파일의 새 경로 또는 오류 메시지
+    """
+    try:
+        print("src_path:" + src_path)
+        print("dest_dir:" + dest_dir)
+        # 대상 디렉터리가 없으면 생성
+        os.makedirs(dest_dir, exist_ok=True)
+
+        # 파일 이동
+        dest_path = os.path.join(dest_dir, os.path.basename(src_path))
+        shutil.move(src_path, dest_path)
+
+        return f"파일이 이동되었습니다: {dest_path}"
+    except Exception as e:
+        return f"파일 이동 중 오류 발생: {e}"
+
+
+
+file_name_list = ['1-1-a', '1-1-b', '1-2-a', '1-2-b',
+                  '2-1-a', '2-1-b', '2-2-a', '2-2-b',
+                  '3-1-a', '3-1-b', '3-2-a', '3-2-b'
+                  ]
+
+def exam_classifier_by_grade(input_path, output_root):
+    for root, _, files in os.walk(input_path):
+        for file in files:
+            for i in file_name_list:
+                if i in file:
+                    if "[고]" in file:
+                        move_file( os.path.join(root, file), os.path.join(output_root, os.path.join( "고", i))  )
+                    elif  "[중]" in file:
+                        move_file(os.path.join(root, file),  os.path.join(output_root, os.path.join("중", i))  )
+                    else:
+                        print("bug!!!: " + file)
+
+
+
+
+input_path = "C:\\Data\\workplace\\NGD\\output250310_215903"
+output_root = "C:\\Data\\workplace\\"
+exam_classifier_by_grade(input_path, output_root)
