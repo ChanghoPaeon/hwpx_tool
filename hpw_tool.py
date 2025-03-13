@@ -130,12 +130,12 @@ def adjust_width(hwp):
         ctrl = ctrl.Next  # 다음 컨트롤로 이동
 
 
-file_path = "I:\\workspace\\ebs\\"
-file_name = "EBS 2026학년도 수능 기출의 미래 수학Ⅱ_(314).hwp-new-"+".hwpx"
+# file_path = "I:\\workspace\\ebs\\"
+# file_name = "EBS 2026학년도 수능 기출의 미래 수학Ⅱ_(314).hwp-new-"+".hwpx"
 
-hwp = hwp_init(file_path+file_name)
-
-adjust_width(hwp)
-
-hwp.SaveAs(file_path+file_name, "HWPX")
+# hwp = hwp_init(file_path+file_name)
+#
+# adjust_width(hwp)
+#
+# hwp.SaveAs(file_path+file_name, "HWPX")
 

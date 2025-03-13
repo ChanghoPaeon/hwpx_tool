@@ -1,17 +1,22 @@
 import pyhwpx
 import os
+import hpw_tool
+
 hwp = pyhwpx.Hwp()
 
 # 보안팝업 자동클릭
 hwp.RegisterModule("FilePathCheckDLL", "FilePathCheckerModule")
 
 
-def extract_from_ebs(file_path, out_path="I:\\workspace\\ebs\\"):
+def extract_from_ebs(file_path, out_path="E:\\workspace\\ebs\\"):
 
     # hwp.XHwpWindows.Active_XHwpWindow.Visible = False
 
     ret = True
 
+    print("file_path: " + file_path)
+
+    print("out_path: " + out_path)
 
 
     hwp.Open(file_path)
@@ -170,6 +175,8 @@ def extract_from_ebs(file_path, out_path="I:\\workspace\\ebs\\"):
     # while hwp.get_into_nth_table(i):
     #     hwp.set_table_width()
     #     i += 1
+
+
     hwp.save_as(out_path+os.path.basename(file_path)+"-new-.hwpx", "HWPX")
 
     hwp.XHwpWindows.Active_XHwpWindow.Visible = True
@@ -186,13 +193,18 @@ def extract_from_ebs(file_path, out_path="I:\\workspace\\ebs\\"):
 
     print("end")
 
+    return out_path+os.path.basename(file_path)+"-new-.hwpx"
 
-file_path = "F:\\git_repo\\hwpx_tool\\sample\\EBS 2026학년도 수능특강 수학영역  수학Ⅱ_(185).hwp"
+
+# file_path = "F:\\git_repo\\hwpx_tool\\sample\\EBS 2026학년도 수능특강 수학영역  수학Ⅱ_(185).hwp"
 # file_path = "F:\\git_repo\\hwpx_tool\\sample\\EBS test.hwp"
-file_path = "F:\\git_repo\\hwpx_tool\\sample\\EBS 2026학년도 수능특강 수학영역 수학Ⅰ_(182).hwp"
-file_path = "F:\\git_repo\\hwpx_tool\\sample\\EBS 2026학년도 수능특강 수학영역 확률과 통계_(186).hwp"
+# file_path = "F:\\git_repo\\hwpx_tool\\sample\\EBS 2026학년도 수능특강 수학영역 수학Ⅰ_(182).hwp"
+# file_path = "F:\\git_repo\\hwpx_tool\\sample\\EBS 2026학년도 수능특강 수학영역 확률과 통계_(186).hwp"
 # file_path = "F:\\git_repo\\hwpx_tool\\sample\\EBS 2026학년도 수능특강 수학영역 미적분_(172).hwp"
 
-file_path = "I:\\학원-과외\\학원-부산\\문제집-일반\\EBS\\기출의 미래\\EBS 2026학년도 수능 기출의 미래 수학Ⅱ_(314).hwp"
+file_path = "E:\\학원-과외\\학원-부산\\문제집-일반\\EBS\\올림포스\\[25647]_EBS 올림포스 유형편 공통수학2(2022 개정).hwp"
 
-extract_from_ebs(file_path)
+converted_path = extract_from_ebs(file_path)
+
+hwp = hpw_tool.hwp_init(converted_path)
+hpw_tool.adjust_width(hwp)
