@@ -230,12 +230,13 @@ class ebs_prob_worker:
 
 suffix = datetime.datetime.now().strftime('%y%m%d_%H%M%S')
 
-# file_path = "I:\\학원-과외\\학원-부산\\문제집-일반\\EBS\\4주특강\\EBS 수능연계완성 3주 특강 수학영역 수학I, 수학II, 미적분_(98).hwp"
+# file_path = "E:\\학원-과외\\학원-부산\\문제집-일반\\EBS\\4주특강\\EBS 2024학년도 수능연계완성 4주 특강 고난도·신유형 수학영역 수학Ⅰ·수학Ⅱ·확률과 통계.hwp"
 # ebs_worker = ebs_prob_worker()
-# converted_path = ebs_worker.extract_from_ebs(file_path, "I:\\workspace\\ebs\\")
-#
-# hwp = hpw_tool.hwp_init(converted_path)
-# hpw_tool.adjust_image_width(hwp)
-converted_path = "I:\\workspace\\ebs\\EBS 수능연계완성 3주 특강 수학영역 수학I, 수학II, 미적분_(98).hwp-new-.hwpx"
+# converted_path = ebs_worker.extract_from_ebs(file_path, "E:\\workspace\\ebs\\")
+# #
+# hwp = hwp_tool.hwp_init(converted_path)
+
+converted_path = "E:\\workspace\\ebs\\EBS 2024학년도 수능연계완성 4주 특강 고난도·신유형 수학영역 수학Ⅰ·수학Ⅱ·확률과 통계.hwp-new-.hwpx"
 hwp = hwp_tool.hwp_init(converted_path)
-hwp_tool.adjust_table_width(hwp)
+hwp_tool.adjust_image_width(hwp)
+# hwp_tool.adjust_table_width(hwp)
