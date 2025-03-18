@@ -7,7 +7,7 @@ import csv
 import logger
 from tools import benchmark
 
-from hpw_tool import delete_NGD_by_api
+from hwp_tool import delete_NGD_by_api
 import re
 import pyperclip
 

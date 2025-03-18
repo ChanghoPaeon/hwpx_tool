@@ -3,6 +3,8 @@ import tkinter as tk
 import zipfile
 from tkinter.filedialog import askopenfilename
 
+import pyhwpx
+from pyhwpx import Hwp
 import win32com.client as win32
 
 # hwp = win32.gencache.EnsureDispatch("hwpframe.hwpobject")  # 한/글 실행
@@ -72,6 +74,7 @@ def delete_NGD_by_api(hwp, hwpx_path):
 
 def hwp_init(filename):  # 한/글 여는 코드가 길어서 미리 만들어둠
     hwp = win32.gencache.EnsureDispatch("HWPFrame.HwpObject")  # 한/글 객체 생성
+    hwp = pyhwpx.Hwp()
     hwp.RegisterModule("FilePathCheckDLL", "FilePathCheckerModule")  # 보안모듈 실행
     hwp.Open(filename)  # GUI에서 선택한 파일 열기
     hwp.XHwpWindows.Item(0).Visible = True  # 한/글 창 숨김해제(초기에는 백그라운드상태)
@@ -90,7 +93,7 @@ def move_to_ctrl(hwp, ctrl):  # 그리기객체나 표 등 컨트롤 오브젝�
 
 
 
-def adjust_width(hwp):
+def adjust_image_width(hwp):
     page_action = hwp.CreateAction("PageSetup")  # 페이지셋업 액션 실행준비
     page_set = page_action.CreateSet()  # 페이지 설정을 위한 파라미터 배열(비어있음) 생성
     page_action.GetDefault(page_set)  # 파라미터에 현재문서의 값을 채워넣음
@@ -99,6 +102,8 @@ def adjust_width(hwp):
     우측여백 = hwp_unit_to_mm(page_set.Item("PageDef").Item("RightMargin"))  # 채워넣은 값 중 우측여백
     제본여백 = hwp_unit_to_mm(page_set.Item("PageDef").Item("GutterLen"))  # 채워넣은 값 중 제본여백
     제본타입 = hwp_unit_to_mm(page_set.Item("PageDef").Item("GutterType"))  # 0:한쪽, 1:맞쪽, 2: 위쪽
+    변경쪽너비 = 종이너비 - 좌측여백 - 우측여백 - (0 if 제본타입 == 2 else 제본여백)  # 변경할 쪽너비 계산
+    변경쪽너비 = 변경쪽너비 / 2.2
 
     print("종이너비: " + str(종이너비))
     print("좌측여백: " + str(좌측여백))
@@ -117,8 +122,6 @@ def adjust_width(hwp):
             이미지액션.GetDefault(이미지세트)  # 빈 파라미터 배열에 현재문서의 값을 채워넣음
             기존너비 = hwp_unit_to_mm(이미지세트.Item("Width"))  # 선택 이미지의 현재너비 저장
             기존높이 = hwp_unit_to_mm(이미지세트.Item("Height"))  # 선택 이미지의 현재높이 저장
-            변경쪽너비 = 종이너비-좌측여백-우측여백-(0 if 제본타입==2 else 제본여백)  # 변경할 쪽너비 계산
-            변경쪽너비 = 변경쪽너비/2.2
 
             if 기존너비 > 변경쪽너비:
                 hwp.HParameterSet.HShapeObject.HSet.SetItem("Width", hwp.MiliToHwpUnit(변경쪽너비))  # 이미지너비 변경값 입력
@@ -128,6 +131,32 @@ def adjust_width(hwp):
         else:  # 컨트롤아이디가 그리기객체가 아니면
             pass  # 그냥 넘어가기
         ctrl = ctrl.Next  # 다음 컨트롤로 이동
+
+def adjust_table_width(hwp):
+
+    page_action = hwp.CreateAction("PageSetup")  # 페이지셋업 액션 실행준비
+    page_set = page_action.CreateSet()  # 페이지 설정을 위한 파라미터 배열(비어있음) 생성
+    page_action.GetDefault(page_set)  # 파라미터에 현재문서의 값을 채워넣음
+    종이너비 = hwp_unit_to_mm(page_set.Item("PageDef").Item("PaperWidth"))  # 채워넣은 값 중 종이너비
+    좌측여백 = hwp_unit_to_mm(page_set.Item("PageDef").Item("LeftMargin"))  # 채워넣은 값 중 좌측여백
+    우측여백 = hwp_unit_to_mm(page_set.Item("PageDef").Item("RightMargin"))  # 채워넣은 값 중 우측여백
+    제본여백 = hwp_unit_to_mm(page_set.Item("PageDef").Item("GutterLen"))  # 채워넣은 값 중 제본여백
+    제본타입 = hwp_unit_to_mm(page_set.Item("PageDef").Item("GutterType"))  # 0:한쪽, 1:맞쪽, 2: 위쪽
+    변경쪽너비 = 종이너비 - 좌측여백 - 우측여백 - (0 if 제본타입 == 2 else 제본여백)  # 변경할 쪽너비 계산
+    변경쪽너비 = 변경쪽너비 / 2.2
+
+    print("종이너비: " + str(종이너비))
+    print("좌측여백: " + str(좌측여백))
+    print("우측여백: " + str(우측여백))
+    print("제본여백: " + str(제본여백))
+    print("제본타입: " + str(제본타입))
+
+    n = 0
+    while hwp.get_into_nth_table(n):  # 1열로 들어가서
+        hwp.set_table_width(변경쪽너비, as_="mm")  # 셀너비 맞추고
+        n += 1  # 다음 표로~
+    hwp.save()
+    return
 
 
 # file_path = "I:\\workspace\\ebs\\"
