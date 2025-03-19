@@ -8,19 +8,178 @@ hwp = pyhwpx.Hwp()
 # 보안팝업 자동클릭
 hwp.RegisterModule("FilePathCheckDLL", "FilePathCheckerModule")
 
-
+# hwp = win32.gencache.EnsureDispatch("hwpframe.hwpobject")  # 한/글 프로그램 실행
+# hwp.XHwpWindows.Item(0).Visible = visible  # 기본값 = 백그라운드 해제
+# hwp.RegisterModule("FilePathCheckDLL", "FilePathCheckerModule")  # 보안모듈
 
 class ebs_prob_worker:
-    def __init__(self):
+    def __init__(self, folder_path="./", db_path = "./db"):
         """
-        HWP 파일에서 특정 키워드를 검색하는 클래스
-        :param folder_path: 검색할 폴더 경로
-        :param keywords: 찾을 키워드 목록 (리스트)
-        :param output_csv: 결과를 저장할 CSV 파일 경로
         """
+        self.folder_path = folder_path
+        self.db_path = os.path.join(folder_path, db_path)
+        self.working_path = folder_path
 
-    def ebs_prob_to_db(self, file_path, out_path = "E:\\workspace\\ebs\\"):
+    def traverse_work(self):
+        """지정된 폴더 내의 모든 폴더 및 파일을 순회"""
+        print(self.folder_path)
+        for root, dirs, files in os.walk(self.folder_path):
+            # root: 현재 디렉토리 경로
+            # dirs: 현재 디렉토리 내의 하위 폴더 리스트
+            # files: 현재 디렉토리 내의 파일 리스트
+
+            print(f"현재 폴더: {root}")
+
+            if dirs:
+                print("하위 폴더들:")
+                for dir_name in dirs:
+                    print(f"  {dir_name}")
+                    self.working_path = dir_name
+                    # self.ebs_prob_to_db(file_name, self.db_path)
+
+            if files:
+                print("파일들:")
+                for file_name in files:
+                    print(f"  {file_name}")
+                    self.ebs_prob_to_db(file_name, self.db_path)
+                    if os.path.exists(os.path.join(self.folder_path, file_name)):
+                        print("완료!!: " + os.path.join(self.folder_path, file_name))
+                        # os.remove(os.path.exists(os.path.join(self.folder_path, file_name)))
+
+
+            print("=" * 50)
+
+    def ebs_prob_to_db(self, file_name, out_path = "E:\\workspace\\ebs\\"):
+
+        ret = True
+
+        print("file_name: " + file_name)
+
+        print("out_path: " + out_path)
+
+        print("join: " + os.path.join(self.folder_path, file_name))
+
+        hwp.XHwpWindows.Item(0).Visible = False  # 기본값 = 백그라운드 해제
+        hwp.Open(os.path.join(self.folder_path, file_name))
+
+        hwp.MoveDocBegin()
+
+
+        # hwp.switch_to(0)
+        # hwp.MoveDocBegin()
+
+        pos_list_prob = []
+        pos_list_ans = []
+        pos_list_ans_end = []
+
+        pos_prob_num = []
+
+        while ret:
+
+            ret = hwp.find("#문항코드")
+            print(ret)
+            hwp.MoveRight()
+            hwp.Select()
+            hwp.MoveWordEnd()
+            prob_num = hwp.get_selected_text()
+            print(prob_num)
+            pos_prob_num.append(prob_num)
+            ret = hwp.MoveLineUp()
+            print(ret)
+            hwp.Cancel()
+
+            # 문제 찾아서 위치 저장
+            ret = hwp.find("[문제]")
+            print("문제")
+            print(ret)
+            # hwp.MoveLineUp()
+            pos_problem = hwp.get_pos()
+            print(*pos_problem)
+
+            pos_list_prob.append(pos_problem)
+
+            # 정답 및 해설 찾아서 위치 저장
+            ret = hwp.find("[정답/모범답안]")
+            # print(ret)
+            pos_ans = hwp.get_pos()
+            print("[정답/모범답안]")
+            print(*pos_ans)
+            pos_list_ans.append(pos_ans)
+
+            ret = hwp.find("#강")
+            # print(ret)
+
+            if not ret:
+                print("문서 끝 처리 필요")
+                hwp.MoveDocEnd()
+            hwp.MoveLineUp()
+            pos_ans_end = hwp.get_pos()
+            print("pos_ans_end" )
+            print(*pos_ans_end)
+
+            pos_list_ans_end.append(pos_ans_end)
+
+            # 문제로 이동
+            # select
+            # move to ans
+            # copy
+
+            # 정답 선택해서 후 복사붙여넣기
+            hwp.set_pos(*pos_ans)
+            hwp.Select()
+
+            hwp.set_pos(*pos_ans_end)
+
+            hwp.save_block_as(os.path.join(out_path, prob_num+"-A"), "HWPX")
+            hwp.Cancel()
+
+
+            # 문제  선택해서 후 복사붙여넣기
+            hwp.set_pos(*pos_problem)
+            hwp.Select()
+            lst = list(pos_ans)
+            lst[2] = 0
+            pos_modification = tuple(lst)
+            hwp.set_pos(*pos_modification)
+            hwp.save_block_as(os.path.join(out_path, prob_num + "-Q"), "HWPX")
+            hwp.Cancel()
+
+
+
+
+
+        # hwp.switch_to(1)
+        #
+        #
+        # # ctrl + enter
+        # hwp.Run("BreakPage")
+        #
+        # # 맨 앞으로 가서 del 두번
+        # hwp.MoveDocBegin()
+        # hwp.Delete()
+        # hwp.Delete()
+        #
+
+        #
+        #
+        # hwp.save_as(out_path+os.path.basename(file_path)+"-new-.hwpx", "HWPX")
+        #
+        # hwp.XHwpWindows.Active_XHwpWindow.Visible = True
+        # hwp.Close()
+        # hwp.switch_to(0)
+        # hwp.XHwpWindows.Active_XHwpWindow.Visible = True
+        hwp.XHwpWindows.Item(0).Visible = True
+        hwp.Close()
+
+        print(pos_prob_num)
+        print(pos_list_prob)
+        print(pos_list_ans)
+        print(pos_list_ans_end)
+
+        print("end")
         return
+
+
 
     def create_hwp_doc(self):
         hwp.add_doc()
@@ -44,7 +203,7 @@ class ebs_prob_worker:
 
         act.Execute(pset)
 
-        return
+        return hwp
 
     def set_multi_col(self):
 
@@ -236,7 +395,17 @@ suffix = datetime.datetime.now().strftime('%y%m%d_%H%M%S')
 # #
 # hwp = hwp_tool.hwp_init(converted_path)
 
-converted_path = "E:\\workspace\\ebs\\EBS 2024학년도 수능연계완성 4주 특강 고난도·신유형 수학영역 수학Ⅰ·수학Ⅱ·확률과 통계.hwp-new-.hwpx"
-hwp = hwp_tool.hwp_init(converted_path)
-hwp_tool.adjust_image_width(hwp)
+# converted_path = "E:\\workspace\\ebs\\EBS 2024학년도 수능연계완성 4주 특강 고난도·신유형 수학영역 수학Ⅰ·수학Ⅱ·확률과 통계.hwp-new-.hwpx"
+# hwp = hwp_tool.hwp_init(converted_path)
+# hwp_tool.adjust_image_width(hwp)
 # hwp_tool.adjust_table_width(hwp)
+# 완료 1, 2,  6 
+# 1 수특
+# 2 수완
+# 3 모고
+# 4 ?
+# 5 4특
+# 6 올림포스 고난도
+
+ebs_worker = ebs_prob_worker( "C:\\Data\\DB_src_5\\",  "C:\\Data\\DB\\")
+ebs_worker.traverse_work()
