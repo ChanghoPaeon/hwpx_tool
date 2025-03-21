@@ -159,12 +159,13 @@ def adjust_table_width(hwp):
     return
 
 
-# file_path = "I:\\workspace\\ebs\\"
-# file_name = "EBS 2026학년도 수능 기출의 미래 수학Ⅱ_(314).hwp-new-"+".hwpx"
-
+# file_path = "E:\\workspace\\"
+# file_name = "수특 수학1 ex+lv1.hwpx"
+#
 # hwp = hwp_init(file_path+file_name)
-#
-# adjust_width(hwp)
-#
+# #
+# adjust_image_width(hwp)
+# adjust_table_width(hwp)
+# #
 # hwp.SaveAs(file_path+file_name, "HWPX")
-
+#

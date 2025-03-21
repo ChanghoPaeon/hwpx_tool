@@ -399,9 +399,9 @@ class NGD_converter:
 
             self.delete_ngd_ctrls(file_path)
             self.delete_keywords_in_file(file_path)
-            # self.math_eq_refiner()
-            # self.save_as_hwpx(file_path)
-            self.save_as_pdf(file_path)
+            self.math_eq_refiner()
+            self.save_as_hwpx(file_path)
+            # self.save_as_pdf(file_path)
 
             sys.stdout.write(f"\r🔄 진행 중: {i}/{total_files} ({(i / total_files) * 100:.2f}%)")
             sys.stdout.flush()
