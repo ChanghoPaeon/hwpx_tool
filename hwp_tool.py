@@ -132,7 +132,7 @@ def adjust_image_width(hwp):
             pass  # 그냥 넘어가기
         ctrl = ctrl.Next  # 다음 컨트롤로 이동
 
-def adjust_table_width(hwp):
+def adjust_table_width(hwp, start_idx = 0):
 
     page_action = hwp.CreateAction("PageSetup")  # 페이지셋업 액션 실행준비
     page_set = page_action.CreateSet()  # 페이지 설정을 위한 파라미터 배열(비어있음) 생성
@@ -151,21 +151,21 @@ def adjust_table_width(hwp):
     print("제본여백: " + str(제본여백))
     print("제본타입: " + str(제본타입))
 
-    n = 0
+    n = start_idx
     while hwp.get_into_nth_table(n):  # 1열로 들어가서
         hwp.set_table_width(변경쪽너비, as_="mm")  # 셀너비 맞추고
         n += 1  # 다음 표로~
     hwp.save()
     return
 
-
+#
 # file_path = "E:\\workspace\\"
-# file_name = "수특 수학1 ex+lv1.hwpx"
-#
+# file_name = "[수능특강] 2026-2021학년도 확통 lv2.hwpx"
+# #
 # hwp = hwp_init(file_path+file_name)
+# # #
+# # adjust_image_width(hwp)
+# adjust_table_width(hwp, 1)
+# # #
+# # hwp.SaveAs(file_path+file_name, "HWPX")
 # #
-# adjust_image_width(hwp)
-# adjust_table_width(hwp)
-# #
-# hwp.SaveAs(file_path+file_name, "HWPX")
-#
