@@ -78,7 +78,7 @@ class workbook_publisher:
         pset.SetItem("ApplyTo", 3)
 
         item_set = pset.CreateItemSet("PageDef", "PageDef")
-        margin = hwp.MiliToHwpUnit(10)
+        margin = hwp.MiliToHwpUnit(5)
         item_set.SetItem("TopMargin", margin)
         item_set.SetItem("BottomMargin", margin)
         item_set.SetItem("LeftMargin", margin)
@@ -112,9 +112,9 @@ class workbook_publisher:
     def publish_workbook(self):
         print("Reading DB Start")
         df = pd.read_csv("./db/db.csv", encoding='euc-kr')
-        q_result = df.query('문제타입 == "ex" or 문제타입 == "lv1"')
+        q_result = df.query('문제타입 == "lv1" or 문제타입 == "lv2"')
 
-        prob_lv = "ex"
+        prob_lv = "lv2"
         prob_subj = "확통"
         qeury = "문제타입 == \"" + prob_lv + "\" and " + "과목 ==" +"\""+ prob_subj+"\""
         print(qeury)
