@@ -282,7 +282,16 @@ def exam_classifier_by_grade(input_path, output_root):
 
 
 
+# input_path = "C:\\Data\\workplace\\NGD\\output250310_215903"
+output_root = "C:\\Data\\workplace\\output\\hwpsx"
+input_path = "C:\\Data\\workplace\\output250407_223838"
+# zip_files = find_zip_files(input_path)
+#
+#
+# for zip_file in zip_files:
+#     extract_hwp_from_zip(zip_file)
 
-input_path = "C:\\Data\\workplace\\NGD\\output250310_215903"
-output_root = "C:\\Data\\workplace\\"
+
+
+
 exam_classifier_by_grade(input_path, output_root)
