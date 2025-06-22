@@ -136,7 +136,7 @@ class NGD_converter:
         # content = hwp.GetTextFile()
         # 자릿수 맞춰 줘야 함?
         # 메시지 박스 타입에 맞게 설정해줘야 함
-        self.hwp.SetMessageBoxMode(0x00000010)
+
 
         self.hwp.MoveDocBegin()
         # 메시지 박스 자동
@@ -208,6 +208,8 @@ class NGD_converter:
                     self.hwp.HParameterSet.HEqEdit.Version = "Equation Version 60"
                     self.hwp.HAction.Execute("EquationCreate", self.hwp.HParameterSet.HEqEdit.HSet)
 
+                    self.hwp.SetMessageBoxMode(0x00000010)
+                    # self.hwp.SetMessageBoxMode(0x11111111)
                     self.hwp.HAction.Run("Delete")
 
                     # hwp.HAction.GetDefault("EquationPropertyDialog", hwp.HParameterSet.HShapeObject.HSet)
@@ -222,10 +224,16 @@ class NGD_converter:
 
                 # if matheq.find("N.G.D") !=-1 or matheq.find("NGD") != -1:
                 #     print(ctrl.Properties.Item("String"))
-
+    @benchmark
     def save_as_pdf(self, file_path):
         print("pdf: " + file_path)
         print("target path:" + os.path.join(self.output_path, os.path.split(file_path)[-1] + "_converted.pdf"))
+
+        # self.hwp.XHwpDocuments.Item(0).XHwpPrint.filename = os.path.join(self.output_path,
+        #                                                              os.path.split(file_path)[-1] + "_converted.pdf")
+        # self.hwp.XHwpDocuments.Item(0).XHwpPrint.PrinterName =  'Microsoft Print to PDF'  # 또는 'Hancom PDF' 등
+        # # self.hwp.XHwpDocuments.Item(0).PrintSet.SetUserPrinter("PDF",  'Microsoft Print to PDF')
+        # self.hwp.XHwpDocuments.Item(0).XHwpPrint.RunToPDF()
 
         pset = self.hwp.HParameterSet.HFileOpenSave
         self.hwp.HAction.GetDefault("FileSaveAsPdf", self.hwp.HParameterSet.HFileOpenSave.HSet)
@@ -236,6 +244,23 @@ class NGD_converter:
         result = self.hwp.HAction.Execute("FileSaveAsPdf", self.hwp.HParameterSet.HFileOpenSave.HSet)
 
         print(result)
+
+    @benchmark
+    def save_as_pdf_img(self, file_path):
+        print("pdf: " + file_path)
+        print("target path:" + os.path.join(self.output_path, os.path.split(file_path)[-1] + "_converted.pdf"))
+
+        self.hwp.save_pdf_as_image( os.path.join(self.output_path, os.path.split(file_path)[-1] + "_converted.pdf"))
+
+        # pset = self.hwp.HParameterSet.HFileOpenSave
+        # self.hwp.HAction.GetDefault("FileSaveAsPdf", self.hwp.HParameterSet.HFileOpenSave.HSet)
+        # self.hwp.HParameterSet.HFileOpenSave.filename = os.path.join(self.output_path,
+        #                                                              os.path.split(file_path)[-1] + "_converted.pdf")
+        # self.hwp.HParameterSet.HFileOpenSave.Format = "PDF"
+        # self.hwp.HParameterSet.HFileOpenSave.Attributes = 16384
+        # result = self.hwp.HAction.Execute("FileSaveAsPdf", self.hwp.HParameterSet.HFileOpenSave.HSet)
+        #
+        # print(result)
 
     def save_as_hwpx(self, file_path):
         print("pdf: " + file_path)
@@ -269,9 +294,9 @@ class NGD_converter:
                 if matches:
                     print("=================== 바꾸기 전")
                     print(matheq)
-                    result = self.re.sub(pattern, "", matheq)
+                    result = re.sub(pattern, "", matheq)
                     print("=================== 바꾸고 난 후")
-                    result = self.re.sub(r"\s+$", " ", result)
+                    result = re.sub(r"\s+$", " ", result)
                     # # stripped = result.rstrip() + " " if result.strip() != result.rstrip() else result
                     print(result)
                     print("=================== ")
@@ -387,12 +412,17 @@ class NGD_converter:
         print(f"🔍 총 {total_files}개의 파일의 변환을 시작합니다.")
         results = []
 
+        self.hwp.XHwpWindows.Item(0).Visible = False  # 기본값 = 백그라운드 해제
+
         for i, file in enumerate(files, start=1):
             file_path = os.path.join(target_path, file)
             file_meta = self.parse_filename(file)
 
             if file_meta is None:
                 continue  # 파일명 오류 시 스킵
+
+            if "[중]" in file_path:
+                continue # 악사중 응답없음 증상 발견 skip
 
             # word_counts = self.count_keywords_in_file(file_path)
             # results.append(file_meta + [word_counts[key] for key in self.keywords])
@@ -401,10 +431,15 @@ class NGD_converter:
             self.delete_keywords_in_file(file_path)
             self.math_eq_refiner()
             self.save_as_hwpx(file_path)
+            # self.save_as_pdf_img(file_path)
             # self.save_as_pdf(file_path)
-
+            # self.hwp.XHwpWindows.Item(0).Visible = True
             sys.stdout.write(f"\r🔄 진행 중: {i}/{total_files} ({(i / total_files) * 100:.2f}%)")
             sys.stdout.flush()
+            self.hwp.XHwpWindows.Item(0).Visible = True
+            self.hwp.Close()
+
+        self.hwp.XHwpWindows.Item(0).Visible = True  # 기본값 = 백그라운드 해제
 
 
 
