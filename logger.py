@@ -10,7 +10,7 @@ import datetime
 
 suffix = datetime.datetime.now().strftime('%y%m%d_%H%M%S')
 
-logging.basicConfig(filename="./log_file/" + suffix + ".txt", level=logging.DEBUG,encoding='utf-8',
+logging.basicConfig(filename="./log/" + suffix + ".txt", level=logging.DEBUG,encoding='utf-8',
                     format="[ %(asctime)s | %(levelname)s ] %(message)s",
                     datefmt="%Y-%m-%d %H:%M:%S")
 

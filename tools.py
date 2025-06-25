@@ -294,4 +294,30 @@ input_path = "C:\\Data\\workplace\\output250407_223838"
 
 
 
-exam_classifier_by_grade(input_path, output_root)
+# exam_classifier_by_grade(input_path, output_root)
+
+# zipfiles = [ file for file in os.listdir() if file.endswith('zip')]
+# print(zipfiles)
+
+ret = find_zip_files("C:\\Data\\workplace\\NGD")
+
+for zip_path in ret:
+    # ZIP 파일 이름(확장자 제외)으로 폴더명 생성
+    # print(os.path.basename(zip_path))
+    folder_name = os.path.splitext(os.path.basename(zip_path))[0]
+    # print(folder_name)
+    extract_path = os.path.join(os.path.dirname(zip_path), folder_name)
+
+    # 폴더가 없으면 생성
+    os.makedirs(extract_path, exist_ok=True)
+
+    # ZIP 파일 열기
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        # .hwp 파일만 추출
+        hwp_files = [file for file in zip_ref.namelist() if file.startswith('[고][2021][2-1-b]')]
+        if len(hwp_files) > 0 :
+            print("%s %s", zip_path , hwp_files)
+        # for hwp_file in hwp_files:
+        #     zip_ref.extract(hwp_file, extract_path)
+
+    # print(f"추출 완료: {extract_path}")

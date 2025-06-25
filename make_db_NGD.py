@@ -3,6 +3,7 @@ import os
 import hwp_tool
 import datetime
 import re
+import logger
 from pyhwpx import Hwp
 hwp = pyhwpx.Hwp()
 
@@ -36,7 +37,7 @@ class ngd_prob_worker:
                 print("하위 폴더들:")
                 for dir_name in dirs:
                     print(f"  {dir_name}")
-                    self.working_path = dir_name
+                    self.working_path = root
                     # self.ebs_prob_to_db(file_name, self.db_path)
 
             if files:
@@ -45,10 +46,11 @@ class ngd_prob_worker:
                     print(idx)
                     idx = idx + 1
                     print(f"  {file_name}")
-                    self.ngd_prob_to_db(file_name, self.db_path)
-                    if os.path.exists(os.path.join(self.folder_path, file_name)):
-                        print("완료!!: " + os.path.join(self.folder_path, file_name))
-                        # os.remove(os.path.exists(os.path.join(self.folder_path, file_name)))
+                    if file_name.endswith('.hwp') or file_name.endswith('.hwpx'):
+                        self.ngd_prob_to_db(root, file_name, self.db_path)
+                        if os.path.exists(os.path.join(self.folder_path, file_name)):
+                            print("완료!!: " + os.path.join(self.folder_path, file_name))
+                            # os.remove(os.path.exists(os.path.join(self.folder_path, file_name)))
 
 
             print("=" * 50)
@@ -60,129 +62,138 @@ class ngd_prob_worker:
     #     return hwp.HAction.Execute("SaveFootnote", pset.HSet)
 
 
-    def ngd_prob_to_db(self, file_name, out_path ="E:\\workspace\\NGD170\\"):
+    def ngd_prob_to_db(self, root, file_name, out_path ="E:\\workspace\\NGD170\\"):
 
-        # file_name = "[고][2021][1-1-b][울산][강남고][수상][복소수-도형의이동][02035][00002][99001][02010][그림1-5-0-0].hwp"
-        ret = True
+        if file_name.startswith("[중]"):
+            print("중학교 skip %s", file_name)
+            return
 
-        print("file_name: " + file_name)
+        try:
 
-        print("out_path: " + out_path)
+            # file_name = "[고][2021][1-1-b][울산][강남고][수상][복소수-도형의이동][02035][00002][99001][02010][그림1-5-0-0].hwp"
+            ret = True
 
-        print("join: " + os.path.join(self.folder_path, file_name))
+            print("file_name: " + file_name)
 
-        hwp.XHwpWindows.Item(0).Visible = True  # 기본값 = 백그라운드 해제
-        # hwp.Open(os.path.join(self.folder_path, file_name))
+            print("out_path: " + out_path)
 
-        print(os.getcwd())
+            full_path = os.path.join(root, file_name)
 
-        hwp.Open(os.path.join(self.folder_path, file_name))
-        hwp.MoveDocBegin()
+            print("join: " + full_path )
 
+            hwp.XHwpWindows.Item(0).Visible = True  # 기본값 = 백그라운드 해제
+            # hwp.Open(os.path.join(self.folder_path, file_name))
 
-        # hwp.switch_to(0)
-        # hwp.MoveDocBegin()
+            print(os.getcwd())
 
-        pos_list_prob = []
-        pos_list_ans = []
-        pos_list_ans_end = []
+            hwp.Open(full_path)
+            hwp.MoveDocBegin()
 
-        prob_chap_list = []
-        prob_lv_list = []
-        # 파일명으로부터 정보추출
-        # 년도, 학기,
-        pattern = r"\[(\d{4})\]"
-        result = re.findall(pattern, file_name)
-        year = result[0]
+            # hwp.switch_to(0)
+            # hwp.MoveDocBegin()
 
-        # 학기
-        pattern = r"(?<=\[)(\d-\d-[ab])(?=\])"
-        result = re.findall(pattern, file_name)
-        semester = result[0]
+            pos_list_prob = []
+            pos_list_ans = []
+            pos_list_ans_end = []
 
-        #학교 이름
-        pattern = r"\[([^\[\]]{1,}고)\]"
-        result = re.findall(pattern, file_name)
-        school_name = result[0]
+            prob_chap_list = []
+            prob_lv_list = []
+            # 파일명으로부터 정보추출
+            # 년도, 학기,
+            pattern = r"\[(\d{4})\]"
+            result = re.findall(pattern, file_name)
+            year = result[0]
 
-        #과목 이름
-        items = re.findall(r"\[([^\[\]]+)\]", file_name)
-        subj = items[5]
+            # 학기
+            pattern = r"(?<=\[)(\d-\d-[ab])(?=\])"
+            result = re.findall(pattern, file_name)
+            semester = result[0]
 
-        save_name = "-".join([year, semester, school_name,subj])
+            # 학교 이름
+            pattern = r"\[([^\[\]]{1,}고)\]"
+            result = re.findall(pattern, file_name)
+            school_name = result[0]
 
+            # 과목 이름
+            items = re.findall(r"\[([^\[\]]+)\]", file_name)
+            subj = items[5]
 
+            save_name = "-".join([year, semester, school_name, subj])
 
-        # 중단원 및 난이도 추출
-        while ret:
+            # 중단원 및 난이도 추출
+            while ret:
+                # print("start 중단원")
+                ret = hwp.find("[중단원]")
 
-            # print("start 중단원")
-            ret = hwp.find("[중단원]")
+                pos_problem = hwp.get_pos()
+                # print(*pos_problem)
+                lst = list(pos_problem)
+                lst[2] = 0
+                pos_modification = tuple(lst)
+                # pos_list_prob.append(pos_problem)
+                pos_list_prob.append(pos_modification)
 
-            pos_problem = hwp.get_pos()
-            # print(*pos_problem)
-            lst = list(pos_problem)
-            lst[2] = 0
-            pos_modification = tuple(lst)
-            # pos_list_prob.append(pos_problem)
-            pos_list_prob.append(pos_modification)
-
-            # print(ret)
-            hwp.MoveRight()
-            hwp.Select()
-            hwp.MoveLineEnd()
-
-            chapter_name = hwp.get_selected_text()
-            prob_chap_list.append(chapter_name.replace(" ", ""))
-
-            hwp.Cancel()
-            # print("start 난이도")
-            ret = hwp.find("[난이도]")
-            # print(ret)
-            hwp.MoveRight()
-            hwp.Select()
-            hwp.MoveLineEnd()
-
-            chapter_name = hwp.get_selected_text()
-            prob_lv_list.append(chapter_name)
-            hwp.Cancel()
-
-        print("prob_chap_list: " + str(len(prob_chap_list)))
-        print("prob_lv_list: " + str(len(prob_lv_list)))
-
-
-
-        pos_prob_num = []
-        # 문제 추출 및 저장.
-        idx = 1
-        for ctrl in hwp.ctrl_list:
-            # 미주이면
-            if ctrl.UserDesc == "미주":
-                # 해당미주로 이동
-                hwp.SetPosBySet(ctrl.GetAnchorPos(0))
-                # 해당 미주로 진입.
-                hwp.Run("MoveNextPosEx")
-                # 미주 전체 선택
-                hwp.HAction.Run("SelectAll")  # 미주노트 전체선택
-
-                save_name_base = save_name + "-"+'{0:02d}'.format(idx) + "-" +prob_lv_list[idx-1]
-
-                hwp.save_block_as(os.path.join(out_path, save_name_base +"-A"), "HWPX")
-                hwp.Cancel()
-                
-                hwp.Run("MoveNextPosEx")
-                # print("미주 아웃!")
-                # 문제 시작 위치
-                # 선택하고
-                # 중단원 위치 전까지 가서 선택
+                # print(ret)
+                hwp.MoveRight()
                 hwp.Select()
-                hwp.set_pos(*pos_list_prob[idx-1])
-                hwp.save_block_as(os.path.join(out_path, save_name_base + "-Q"), "HWPX")
+                hwp.MoveLineEnd()
+
+                chapter_name = hwp.get_selected_text()
+                prob_chap_list.append(chapter_name.replace(" ", ""))
+
                 hwp.Cancel()
-                hwp.MoveLineDown()
-                hwp.MoveLineDown()
-                idx = idx + 1
-        print("완")
+                # print("start 난이도")
+                ret = hwp.find("[난이도]")
+                # print(ret)
+                hwp.MoveRight()
+                hwp.Select()
+                hwp.MoveLineEnd()
+
+                chapter_name = hwp.get_selected_text()
+                prob_lv_list.append(chapter_name)
+                hwp.Cancel()
+
+            print("prob_chap_list: " + str(len(prob_chap_list)))
+            print("prob_lv_list: " + str(len(prob_lv_list)))
+
+            pos_prob_num = []
+            # 문제 추출 및 저장.
+            idx = 1
+            for ctrl in hwp.ctrl_list:
+                # 미주이면
+                if ctrl.UserDesc == "미주":
+                    # 해당미주로 이동
+                    hwp.SetPosBySet(ctrl.GetAnchorPos(0))
+                    # 해당 미주로 진입.
+                    hwp.Run("MoveNextPosEx")
+                    # 미주 전체 선택
+                    hwp.HAction.Run("SelectAll")  # 미주노트 전체선택
+
+                    save_name_base = "-".join([prob_lv_list[idx-1], prob_chap_list[idx-1],  save_name + "-" + '{0:02d}'.format(idx)])
+
+
+                    hwp.save_block_as(os.path.join(out_path, save_name_base + "-A.hwpx"), "HWPX")
+                    hwp.Cancel()
+
+                    hwp.Run("MoveNextPosEx")
+                    # print("미주 아웃!")
+                    # 문제 시작 위치
+                    # 선택하고
+                    # 중단원 위치 전까지 가서 선택
+                    hwp.Select()
+                    hwp.set_pos(*pos_list_prob[idx - 1])
+                    hwp.save_block_as(os.path.join(out_path, save_name_base + "-Q.hwpx"), "HWPX")
+                    hwp.Cancel()
+                    hwp.MoveLineDown()
+                    hwp.MoveLineDown()
+                    idx = idx + 1
+            print("완")
+            hwp.Close()
+        except Exception as e:
+            print("예외 발생:", e)
+            logger.logger.debug("%s %s", file_name, e)
+            hwp.Close()
+
         return
 
 
@@ -412,6 +423,6 @@ suffix = datetime.datetime.now().strftime('%y%m%d_%H%M%S')
 # 4 ?
 # 5 4특
 # 6 올림포스 고난도
-
-ebs_worker = ngd_prob_worker("C:\\Data\\workplace\\NGD170\\[NGD]232차 기출 최종완성본 (총 432파일)_2025.01.19 한글본\\", "C:\\Data\\DB\\NGD\\")
+# C:\Data\workplace\NGD170\[NGD]231차 기출 최종완성본 (총 412파일)_2025.01.09 한글본
+ebs_worker = ngd_prob_worker("C:\\Data\\workplace\\NGD170\\[NGD]219차 기출 최종완성본 (총 414파일)_2024.09.02 한글본\\", "C:\\Data\\DB\\NGD\\")
 ebs_worker.traverse_work()
