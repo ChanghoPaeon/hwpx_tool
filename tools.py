@@ -282,9 +282,50 @@ def exam_classifier_by_grade(input_path, output_root):
 
 
 
+
+
+def exam_classifier_by_lv_chap(input_path, output_root):
+    # 상-이항분포-2022-3-1-b-청주외고-확통-18-Q
+    for root, _, files in os.walk(input_path):
+        for file in files:
+            name_without_ext, ext = os.path.splitext(file)
+
+            # 이름을 - 로 분리
+            parts = name_without_ext.split('-')
+
+            if len(parts) < 3:
+                print("파일명이 너무 짧아 처리할 수 없습니다.")
+                return
+
+            first = parts[0]  # 첫 번째
+            second = parts[1]  # 두 번째
+            penultimate = parts[-2]  # 마지막에서 두 번째 = 마지막전
+
+            # 대상 폴더 경로
+            target_dir = os.path.join(output_root, first, penultimate, second)
+
+            # 폴더가 없으면 생성
+            os.makedirs(target_dir, exist_ok=True)
+
+            # 새 파일 경로
+            new_path = os.path.join(target_dir, file)
+
+            # 파일 이동
+            shutil.move(input_path, new_path)
+            print(f"{input_path} → {new_path} 로 이동 완료.")
+
+
 # input_path = "C:\\Data\\workplace\\NGD\\output250310_215903"
-output_root = "C:\\Data\\workplace\\output\\hwpsx"
-input_path = "C:\\Data\\workplace\\output250407_223838"
+# output_root = "C:\\Data\DB\\NGD\\"
+# input_path = "C:\\Data\\workplace\\output250407_223838"
+
+input_path = "J:\\NGD"
+output_root = "J:\\NGD\\done"
+
+
+# combine_QnA(input_path, output_root)
+
+
 # zip_files = find_zip_files(input_path)
 #
 #
@@ -299,25 +340,25 @@ input_path = "C:\\Data\\workplace\\output250407_223838"
 # zipfiles = [ file for file in os.listdir() if file.endswith('zip')]
 # print(zipfiles)
 
-ret = find_zip_files("C:\\Data\\workplace\\NGD")
-
-for zip_path in ret:
-    # ZIP 파일 이름(확장자 제외)으로 폴더명 생성
-    # print(os.path.basename(zip_path))
-    folder_name = os.path.splitext(os.path.basename(zip_path))[0]
-    # print(folder_name)
-    extract_path = os.path.join(os.path.dirname(zip_path), folder_name)
-
-    # 폴더가 없으면 생성
-    os.makedirs(extract_path, exist_ok=True)
-
-    # ZIP 파일 열기
-    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-        # .hwp 파일만 추출
-        hwp_files = [file for file in zip_ref.namelist() if file.startswith('[고][2021][2-1-b]')]
-        if len(hwp_files) > 0 :
-            print("%s %s", zip_path , hwp_files)
-        # for hwp_file in hwp_files:
-        #     zip_ref.extract(hwp_file, extract_path)
-
-    # print(f"추출 완료: {extract_path}")
+# ret = find_zip_files("C:\\Data\\workplace\\NGD")
+#
+# for zip_path in ret:
+#     # ZIP 파일 이름(확장자 제외)으로 폴더명 생성
+#     # print(os.path.basename(zip_path))
+#     folder_name = os.path.splitext(os.path.basename(zip_path))[0]
+#     # print(folder_name)
+#     extract_path = os.path.join(os.path.dirname(zip_path), folder_name)
+#
+#     # 폴더가 없으면 생성
+#     os.makedirs(extract_path, exist_ok=True)
+#
+#     # ZIP 파일 열기
+#     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+#         # .hwp 파일만 추출
+#         hwp_files = [file for file in zip_ref.namelist() if file.startswith('[고][2021][2-1-b]')]
+#         if len(hwp_files) > 0 :
+#             print("%s %s", zip_path , hwp_files)
+#         # for hwp_file in hwp_files:
+#         #     zip_ref.extract(hwp_file, extract_path)
+#
+#     # print(f"추출 완료: {extract_path}")

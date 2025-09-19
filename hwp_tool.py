@@ -3,6 +3,8 @@ import tkinter as tk
 import zipfile
 from tkinter.filedialog import askopenfilename
 
+import logger
+
 import pyhwpx
 from pyhwpx import Hwp
 import win32com.client as win32
@@ -158,6 +160,114 @@ def adjust_table_width(hwp, start_idx = 0):
     hwp.save()
     return
 
+
+def combine_QnA(input_path, output_root):
+    for root, _, files in os.walk(input_path):
+        for filename in files:
+
+            logger.logger.debug(f"현재 폴더: {filename}")
+
+            name, ext = os.path.splitext(filename)  # 확장자 분리
+            if name.endswith('-Q'):
+                answer_name = name[:-2] + '-A' + ext
+                new_name = name[:-2] + ext
+
+                print(new_name)
+                hwp = pyhwpx.Hwp(visible=False)
+                hwp.XHwpWindows.Item(0).Visible = False  # 기본값 = 백그라운드 해제
+                hwp.RegisterModule("FilePathCheckDLL", "FilePathCheckerModule")  # 보안모듈 실행
+                hwp.SetMessageBoxMode(0x00010011)
+
+                hwp.add_doc()
+                # hwp.Open(file_path + ".hwp")
+
+                # 페이지 여백 설정
+                act = hwp.CreateAction("PageSetup")
+                pset = act.CreateSet()
+                act.GetDefault(pset)
+                pset.SetItem("ApplyTo", 3)
+
+                item_set = pset.CreateItemSet("PageDef", "PageDef")
+                margin = hwp.MiliToHwpUnit(5)
+                item_set.SetItem("TopMargin", margin)
+                item_set.SetItem("BottomMargin", margin)
+                item_set.SetItem("LeftMargin", margin)
+                item_set.SetItem("RightMargin", margin)
+                item_set.SetItem("HeaderLen", margin)
+                item_set.SetItem("FooterLen", margin)
+                item_set.SetItem("GutterLen", margin)
+
+                act.Execute(pset)
+                answer_name_path = os.path.join(root, answer_name)
+                hwp.Open(str(answer_name_path))
+
+                hwp.XHwpWindows.Item(1).Visible = False  # 기본값 = 백그라운드 해제
+                hwp.MoveDocBegin()
+                # hwp.find("[정답]")
+
+                # hwp.Clear()
+                hwp.SelectAll()
+                # hwp.Select()
+                # hwp.MoveRight()
+                # hwp.Run("BreakPara")
+                # hwp.Select()
+                hwp.Copy()
+
+                hwp.switch_to(0)
+                hwp.SetMessageBoxMode(0x00010011)
+
+                # hwp.Run("BreakColumn")
+                # 미주 넣기
+                hwp.Run("InsertEndnote")
+                hwp.Paste()
+
+
+                hwp.Run("MoveListBegin")
+                hwp.Run("MoveRight")
+                hwp.Run("Delete")
+
+                hwp.Run("Delete")
+
+                hwp.Run("MoveListEnd")
+                # 미주 빠져나오기
+                hwp.MoveNextPosEx()
+                hwp.MoveNextPosEx()
+
+                hwp.switch_to(1)
+                hwp.Clear(1)
+
+                # hwp.switch_to(0)
+
+
+                question_name_path = os.path.join(root, filename)
+                hwp.Open(str(question_name_path))
+
+                hwp.XHwpWindows.Item(1).Visible = False  # 기본값 = 백그라운드 해제
+                hwp.SelectAll()
+                hwp.Copy()
+
+                hwp.switch_to(0)
+                # hwp.insert_text(" " + str(row['문제집']) + "-" + str(row['문제번호']).zfill(4))
+                hwp.BreakPara()
+                # hwp.insert_text(" " + str(row['문제타입']))
+                hwp.Paste()
+                save_name = name[:-2] + ext
+                combined_full_path = os.path.join(root, "done", save_name)
+                hwp.save_as(combined_full_path, "HWPX")
+
+                hwp.switch_to(1)
+                hwp.Clear(1)
+
+                logger.logger.debug(f"done: {filename}")
+                hwp.Quit()
+
+                logger.logger.debug(" hwp.Quit()")
+            else:
+                print("파일명이 '-Q'로 끝나지 않습니다.")
+    print("end")
+    return
+
+
 #
 # file_path = "E:\\workspace\\"
 # file_name = "[수능특강] 2026-2021학년도 확통 lv2.hwpx"
@@ -169,3 +279,9 @@ def adjust_table_width(hwp, start_idx = 0):
 # # #
 # # hwp.SaveAs(file_path+file_name, "HWPX")
 # #
+
+
+input_path = "J:\\NGD\\기하"
+output_root = "J:\\NGD\\done"
+
+combine_QnA(input_path, output_root)
