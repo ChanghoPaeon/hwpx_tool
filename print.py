@@ -1,29 +1,46 @@
-import os
-import sys
+from pathlib import Path
+from datetime import datetime
 
+import pyhwpx
 from pyhwpx import Hwp
 
 
-def hwp_to_pdf(hwp_path):
-    if not os.path.exists(hwp_path):
-        print("❌ 파일이 존재하지 않습니다.")
-        return
+hwp = pyhwpx.Hwp()
 
-    try:
-        hwp = Hwp()
-        hwp.open(hwp_path)
 
-        output_path = os.path.splitext(hwp_path)[0] + ".pdf"
-        hwp.save_as(output_path)
-        print(f"✅ PDF 저장 완료: {output_path}")
-        hwp.quit()
+def convert_hwp_to_pdf(root_dir):
+    root = Path(root_dir)
 
-    except Exception as e:
-        print("⚠️ 변환 중 오류 발생:", e)
+    hwp = Hwp(visible=False)
+
+
+    for file in root.rglob("*"):
+        if file.suffix.lower() in [".hwp", ".hwpx"]:
+
+            try:
+                print("convert:", file)
+
+                # 날짜시간 문자열
+                now = datetime.now().strftime("%Y%m%d-%H%M%S")
+
+                # 새 파일명
+                pdf_path = file.with_name(f"{file.stem}-{now}.pdf")
+
+                # 파일 열기
+                hwp.Open(str(file))
+
+                # PDF 저장
+                hwp.SaveAs(str(pdf_path), "PDF")
+
+                # 문서 닫기
+                hwp.Clear()
+
+            except Exception as e:
+                print("error:", file, e)
+
+    hwp.Quit()
+
+
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        hwp_file = sys.argv[1]
-        hwp_to_pdf(hwp_file)
-    else:
-        print("ℹ️ 변환할 .hwp 또는 .hwpx 파일을 드래그해서 실행해주세요.")
+    convert_hwp_to_pdf(r"I:\\학원-과외\\20 과고기출\\00 울산과학고 울산과고")
