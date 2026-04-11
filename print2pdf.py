@@ -4,16 +4,21 @@ import queue
 import traceback
 import threading
 import multiprocessing
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from datetime import datetime
 import re
 
+import pythoncom
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
 
 VALID_EXTS = {".hwp", ".hwpx", ".hml"}
+
+# Hwp COM 생성 충돌 방지용 전역 락
+HWP_CREATE_LOCK = threading.Lock()
 
 
 @dataclass
@@ -31,17 +36,20 @@ class ConvertConfig:
 
 def make_allowed_exts(cfg: ConvertConfig) -> set[str]:
     exts: set[str] = set()
+
     if cfg.include_hwp:
         exts.add(".hwp")
     if cfg.include_hwpx:
         exts.add(".hwpx")
     if cfg.include_hml:
         exts.add(".hml")
+
     return exts
 
 
 def _safe_folder_name(text: str) -> str:
     text = text.strip()
+
     if not text:
         return "필터링"
 
@@ -58,8 +66,8 @@ def _safe_folder_name(text: str) -> str:
 def _tokenize_filter_expr(expr: str) -> list[str]:
     """
     예:
-    '중간 and (공통 or 수학)'
-    -> ['중간', 'and', '(', '공통', 'or', '수학', ')']
+    '고1 and (1학기 or 2학기)'
+    -> ['고1', 'and', '(', '1학기', 'or', '2학기', ')']
     """
     tokens: list[str] = []
     i = 0
@@ -126,10 +134,9 @@ class _FilterExprParser:
 
         while True:
             tok = self.current()
-
             if tok is not None and tok.lower() == "or":
                 self.consume()
-                rhs = self.parse_and()   # 반드시 파싱해서 토큰 소비
+                rhs = self.parse_and()
                 value = value or rhs
             else:
                 break
@@ -141,10 +148,9 @@ class _FilterExprParser:
 
         while True:
             tok = self.current()
-
             if tok is not None and tok.lower() == "and":
                 self.consume()
-                rhs = self.parse_factor()   # 반드시 파싱해서 토큰 소비
+                rhs = self.parse_factor()
                 value = value and rhs
             else:
                 break
@@ -159,7 +165,6 @@ class _FilterExprParser:
 
         if tok == "(":
             self.consume()
-
             value = self.parse_or()
 
             if self.current() != ")":
@@ -177,11 +182,13 @@ class _FilterExprParser:
 
 def _match_filter_expr(filename: str, expr: str) -> bool:
     expr = expr.strip()
+
     if not expr:
         return True
 
     tokens = _tokenize_filter_expr(expr)
     parser = _FilterExprParser(tokens, filename)
+
     return parser.parse()
 
 
@@ -205,11 +212,13 @@ def make_pdf_path(
         out_dir = (src.parent / "pdf" / _safe_folder_name(filter_text)).resolve()
 
     out_dir.mkdir(parents=True, exist_ok=True)
+
     return str((out_dir / filename).resolve())
 
 
 def find_target_files(cfg: ConvertConfig) -> list[str]:
     root = Path(cfg.root_dir)
+
     if not root.exists():
         raise FileNotFoundError(f"폴더를 찾을 수 없습니다: {cfg.root_dir}")
 
@@ -258,6 +267,8 @@ def convert_one_fresh_instance(
     hwp = None
 
     try:
+        pythoncom.CoInitialize()
+
         from pyhwpx import Hwp
 
         src = Path(src_path).resolve()
@@ -268,7 +279,21 @@ def convert_one_fresh_instance(
             filter_text,
         )
 
-        hwp = Hwp(visible=False)
+        last_error = None
+
+        # Hwp 생성은 직렬화 + 재시도
+        for _ in range(3):
+            try:
+                with HWP_CREATE_LOCK:
+                    hwp = Hwp(visible=False)
+                break
+            except Exception as e:
+                last_error = e
+                time.sleep(1.0)
+
+        if hwp is None:
+            raise last_error if last_error is not None else RuntimeError("Hwp 생성 실패")
+
         hwp.Open(str(src))
         hwp.SaveAs(pdf_path, "PDF")
 
@@ -288,6 +313,11 @@ def convert_one_fresh_instance(
         try:
             if hwp is not None:
                 hwp.Quit()
+        except Exception:
+            pass
+
+        try:
+            pythoncom.CoUninitialize()
         except Exception:
             pass
 
@@ -311,8 +341,9 @@ class App(tk.Tk):
         self.include_hml_var = tk.BooleanVar(value=True)
         self.include_name_var = tk.StringVar()
         self.exclude_name_var = tk.StringVar()
-        self.save_timestamp_var = tk.BooleanVar(value=False)
+        self.save_timestamp_var = tk.BooleanVar(value=True)
         self.skip_existing_var = tk.BooleanVar(value=False)
+        self.worker_count_var = tk.StringVar(value="1")
 
         self._build_ui()
         self.after(120, self._drain_log_queue)
@@ -352,6 +383,15 @@ class App(tk.Tk):
         ttk.Checkbutton(opt, text="같은 이름 계열 PDF가 이미 있으면 건너뛰기", variable=self.skip_existing_var).grid(
             row=4, column=0, columnspan=2, sticky="w", **pad
         )
+
+        ttk.Label(opt, text="동시 변환 수").grid(row=5, column=0, sticky="w", **pad)
+        ttk.Combobox(
+            opt,
+            textvariable=self.worker_count_var,
+            values=["1", "2", "3", "4"],
+            state="readonly",
+            width=10,
+        ).grid(row=5, column=1, sticky="w", **pad)
 
         opt.columnconfigure(1, weight=1)
         opt.columnconfigure(2, weight=1)
@@ -411,6 +451,19 @@ class App(tk.Tk):
             pass
 
         self.after(120, self._drain_log_queue)
+
+    def get_worker_count(self) -> int:
+        try:
+            value = int(self.worker_count_var.get())
+        except Exception:
+            value = 1
+
+        if value < 1:
+            value = 1
+        if value > 4:
+            value = 4
+
+        return value
 
     def get_config(self) -> ConvertConfig:
         root_dir = self.root_dir_var.get().strip()
@@ -496,8 +549,14 @@ class App(tk.Tk):
         fail_count = 0
         total = len(files)
 
+        requested_workers = self.get_worker_count()
+
         self.log(f"대상 파일 수: {total}")
-        self.log("변환 방식: 순차 처리 / 파일마다 새 한글 인스턴스")
+        self.log(f"요청된 동시 변환 수: {requested_workers}")
+        self.log("실제 변환 방식: 안정성을 위해 순차 처리 / 파일마다 새 한글 인스턴스")
+
+        if requested_workers > 1:
+            self.log("[안내] pyhwpx/HWP COM 안정성 문제로 동시 변환은 비활성화하고 1개씩 처리합니다.")
 
         if cfg.output_dir:
             self.log(f"저장 폴더: {cfg.output_dir}")
